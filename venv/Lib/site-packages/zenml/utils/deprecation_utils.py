@@ -109,13 +109,13 @@ def deprecate_pydantic_attributes(
             else:
                 deprecated_attribute, replacement_attribute = attribute
 
-                assert (
-                    replacement_attribute in cls.model_fields
-                ), f"Unable to find attribute {replacement_attribute}."
+                assert replacement_attribute in cls.model_fields, (
+                    f"Unable to find attribute {replacement_attribute}."
+                )
 
-            assert (
-                deprecated_attribute in cls.model_fields
-            ), f"Unable to find attribute {deprecated_attribute}."
+            assert deprecated_attribute in cls.model_fields, (
+                f"Unable to find attribute {deprecated_attribute}."
+            )
 
             if cls.model_fields[deprecated_attribute].is_required():
                 raise TypeError(
@@ -132,14 +132,16 @@ def deprecate_pydantic_attributes(
             if replacement_attribute is None:
                 _warn(
                     message=f"The attribute `{deprecated_attribute}` of class "
-                    f"`{cls.__name__}` will be deprecated soon.",
+                    f"`{cls.__name__}` is deprecated and will be removed in "
+                    "the future.",
                     attribute=deprecated_attribute,
                 )
                 continue
 
             _warn(
                 message=f"The attribute `{deprecated_attribute}` of class "
-                f"`{cls.__name__}` will be deprecated soon. Use the "
+                f"`{cls.__name__}` is deprecated and will be removed in the "
+                "future. Use the "
                 f"attribute `{replacement_attribute}` instead.",
                 attribute=deprecated_attribute,
             )

@@ -13,9 +13,11 @@
 #  permissions and limitations under the License.
 """Utility functions for dashboard visualizations."""
 
+import json
 from typing import TYPE_CHECKING, Optional
 
-from IPython.core.display import HTML, Image, Markdown, display
+from IPython.core.display_functions import display
+from IPython.display import HTML, JSON, Image, Markdown
 
 from zenml.artifacts.utils import load_artifact_visualization
 from zenml.enums import VisualizationType
@@ -41,7 +43,7 @@ def visualize_artifact(
         raise RuntimeError(
             "The `output.visualize()` method is only available in Jupyter "
             "notebooks. In all other runtime environments, please open "
-            "your ZenML dashboard using `zenml up` and view the "
+            "your ZenML dashboard using `zenml login --local` and view the "
             "visualizations by clicking on the respective artifacts in the "
             "pipeline run DAG instead."
         )
@@ -63,6 +65,8 @@ def visualize_artifact(
             assert isinstance(visualization.value, str)
             table = format_csv_visualization_as_html(visualization.value)
             display(HTML(table))
+        elif visualization.type == VisualizationType.JSON:
+            display(JSON(json.loads(visualization.value)))
         else:
             display(visualization.value)
 

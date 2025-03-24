@@ -13,7 +13,17 @@
 #  permissions and limitations under the License.
 """Collection of all models concerning triggers."""
 
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, List, Optional, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Dict,
+    List,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+)
 from uuid import UUID
 
 from pydantic import Field, model_validator
@@ -23,12 +33,12 @@ from zenml.constants import STR_FIELD_MAX_LENGTH
 from zenml.models.v2.base.base import BaseUpdate
 from zenml.models.v2.base.page import Page
 from zenml.models.v2.base.scoped import (
-    WorkspaceScopedFilter,
-    WorkspaceScopedRequest,
-    WorkspaceScopedResponse,
-    WorkspaceScopedResponseBody,
-    WorkspaceScopedResponseMetadata,
-    WorkspaceScopedResponseResources,
+    ProjectScopedFilter,
+    ProjectScopedRequest,
+    ProjectScopedResponse,
+    ProjectScopedResponseBody,
+    ProjectScopedResponseMetadata,
+    ProjectScopedResponseResources,
 )
 from zenml.models.v2.core.trigger_execution import TriggerExecutionResponse
 
@@ -39,12 +49,15 @@ if TYPE_CHECKING:
         ActionResponse,
     )
     from zenml.models.v2.core.event_source import EventSourceResponse
+    from zenml.zen_stores.schemas import BaseSchema
+
+    AnySchema = TypeVar("AnySchema", bound=BaseSchema)
 
 
 # ------------------ Request Model ------------------
 
 
-class TriggerRequest(WorkspaceScopedRequest):
+class TriggerRequest(ProjectScopedRequest):
     """Model for creating a new trigger."""
 
     name: str = Field(
@@ -132,7 +145,7 @@ class TriggerUpdate(BaseUpdate):
 # ------------------ Response Model ------------------
 
 
-class TriggerResponseBody(WorkspaceScopedResponseBody):
+class TriggerResponseBody(ProjectScopedResponseBody):
     """Response body for triggers."""
 
     action_flavor: str = Field(
@@ -159,7 +172,7 @@ class TriggerResponseBody(WorkspaceScopedResponseBody):
     )
 
 
-class TriggerResponseMetadata(WorkspaceScopedResponseMetadata):
+class TriggerResponseMetadata(ProjectScopedResponseMetadata):
     """Response metadata for triggers."""
 
     description: str = Field(
@@ -179,7 +192,7 @@ class TriggerResponseMetadata(WorkspaceScopedResponseMetadata):
     )
 
 
-class TriggerResponseResources(WorkspaceScopedResponseResources):
+class TriggerResponseResources(ProjectScopedResponseResources):
     """Class for all resource models associated with the trigger entity."""
 
     action: "ActionResponse" = Field(
@@ -196,7 +209,7 @@ class TriggerResponseResources(WorkspaceScopedResponseResources):
 
 
 class TriggerResponse(
-    WorkspaceScopedResponse[
+    ProjectScopedResponse[
         TriggerResponseBody, TriggerResponseMetadata, TriggerResponseResources
     ]
 ):
@@ -311,11 +324,11 @@ class TriggerResponse(
 # ------------------ Filter Model ------------------
 
 
-class TriggerFilter(WorkspaceScopedFilter):
+class TriggerFilter(ProjectScopedFilter):
     """Model to enable advanced filtering of all triggers."""
 
     FILTER_EXCLUDE_FIELDS: ClassVar[List[str]] = [
-        *WorkspaceScopedFilter.FILTER_EXCLUDE_FIELDS,
+        *ProjectScopedFilter.FILTER_EXCLUDE_FIELDS,
         "action_flavor",
         "action_subtype",
         "event_source_flavor",
@@ -358,9 +371,12 @@ class TriggerFilter(WorkspaceScopedFilter):
     )
 
     def get_custom_filters(
-        self,
+        self, table: Type["AnySchema"]
     ) -> List["ColumnElement[bool]"]:
         """Get custom filters.
+
+        Args:
+            table: The query table.
 
         Returns:
             A list of custom filters.
@@ -373,7 +389,7 @@ class TriggerFilter(WorkspaceScopedFilter):
             TriggerSchema,
         )
 
-        custom_filters = super().get_custom_filters()
+        custom_filters = super().get_custom_filters(table)
 
         if self.event_source_flavor:
             event_source_flavor_filter = and_(

@@ -24,6 +24,9 @@ model = Model(
 )
 
 
+if experiment_tracker is None:
+    raise ValueError("No experiment tracker found! Ensure you have an experiment tracker in your ZenML stack.")
+
 @step(enable_cache=False, experiment_tracker=experiment_tracker.name, model=model)
 def model_building_step(
     X_train: pd.DataFrame, y_train: pd.Series

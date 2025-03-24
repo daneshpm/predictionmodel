@@ -26,7 +26,8 @@ class LangchainIntegration(Integration):
 
     NAME = LANGCHAIN
     REQUIREMENTS = [
-        "langchain==0.0.325",
+        "langchain==0.3.0",
+        "langchain-community",
         "pyyaml>=6.0.1",
         "tenacity!=8.4.0",  # https://github.com/jd/tenacity/issues/471
     ]
@@ -37,5 +38,3 @@ class LangchainIntegration(Integration):
         """Activates the integration."""
         from zenml.integrations.langchain import materializers  # noqa
 
-
-LangchainIntegration.check_installation()

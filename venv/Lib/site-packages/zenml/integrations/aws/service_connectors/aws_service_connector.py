@@ -66,6 +66,7 @@ from zenml.service_connectors.service_connector import (
 )
 from zenml.utils.enum_utils import StrEnum
 from zenml.utils.secret_utils import PlainSerializedSecretStr
+from zenml.utils.time_utils import utc_now_tz_aware
 
 logger = get_logger(__name__)
 
@@ -522,6 +523,9 @@ that the connector will be allowed to access (e.g. `arn:aws:s3:::*` and
 - `s3:PutObject`
 - `s3:DeleteObject`
 - `s3:ListAllMyBuckets`
+- `s3:GetBucketVersioning`
+- `s3:ListBucketVersions`
+- `s3:DeleteObjectVersion`
 
 If set, the resource name must identify an S3 bucket using one of the following
 formats:
@@ -708,7 +712,7 @@ class AWSServiceConnector(ServiceConnector):
                 return session, None
 
             # Refresh expired sessions
-            now = datetime.datetime.now(datetime.timezone.utc)
+            now = utc_now_tz_aware()
             expires_at = expires_at.replace(tzinfo=datetime.timezone.utc)
             # check if the token expires in the near future
             if expires_at > now + datetime.timedelta(
@@ -795,6 +799,9 @@ class AWSServiceConnector(ServiceConnector):
                             "s3:PutObject",
                             "s3:DeleteObject",
                             "s3:ListAllMyBuckets",
+                            "s3:GetBucketVersioning",
+                            "s3:ListBucketVersions",
+                            "s3:DeleteObjectVersion",
                         ],
                         "Resource": resource,
                     },
@@ -953,9 +960,7 @@ class AWSServiceConnector(ServiceConnector):
                 # determine the expiration time of the temporary credentials
                 # from the boto3 session, so we assume the default IAM role
                 # expiration date is used
-                expiration_time = datetime.datetime.now(
-                    tz=datetime.timezone.utc
-                ) + datetime.timedelta(
+                expiration_time = utc_now_tz_aware() + datetime.timedelta(
                     seconds=DEFAULT_IAM_ROLE_TOKEN_EXPIRATION
                 )
                 return session, expiration_time
@@ -1667,9 +1672,7 @@ class AWSServiceConnector(ServiceConnector):
                     # expiration time of the temporary credentials from the
                     # boto3 session, so we assume the default IAM role
                     # expiration period is used
-                    expires_at = datetime.datetime.now(
-                        tz=datetime.timezone.utc
-                    ) + datetime.timedelta(
+                    expires_at = utc_now_tz_aware() + datetime.timedelta(
                         seconds=DEFAULT_IAM_ROLE_TOKEN_EXPIRATION
                     )
 
@@ -1714,9 +1717,7 @@ class AWSServiceConnector(ServiceConnector):
                         aws_secret_access_key=credentials["SecretAccessKey"],
                         aws_session_token=credentials["SessionToken"],
                     )
-                    expires_at = datetime.datetime.now(
-                        tz=datetime.timezone.utc
-                    ) + datetime.timedelta(
+                    expires_at = utc_now_tz_aware() + datetime.timedelta(
                         seconds=DEFAULT_STS_TOKEN_EXPIRATION
                     )
 
@@ -2124,9 +2125,9 @@ class AWSServiceConnector(ServiceConnector):
             # Kubernetes authentication tokens issued by AWS EKS have a fixed
             # expiration time of 15 minutes
             # source: https://aws.github.io/aws-eks-best-practices/security/docs/iam/#controlling-access-to-eks-clusters
-            expires_at = datetime.datetime.now(
-                tz=datetime.timezone.utc
-            ) + datetime.timedelta(minutes=EKS_KUBE_API_TOKEN_EXPIRATION)
+            expires_at = utc_now_tz_aware() + datetime.timedelta(
+                minutes=EKS_KUBE_API_TOKEN_EXPIRATION
+            )
 
             # get cluster details
             cluster_arn = cluster["cluster"]["arn"]

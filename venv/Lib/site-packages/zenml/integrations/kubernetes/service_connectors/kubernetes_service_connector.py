@@ -26,6 +26,7 @@ from typing import Any, List, Optional
 from kubernetes import client as k8s_client
 from kubernetes import config as k8s_config
 from pydantic import Field
+from urllib3.exceptions import HTTPError
 
 from zenml.constants import KUBERNETES_CLUSTER_RESOURCE_TYPE
 from zenml.exceptions import AuthorizationException
@@ -503,13 +504,17 @@ class KubernetesServiceConnector(ServiceConnector):
                 ).decode("utf-8")
                 if kube_config.ssl_ca_cert
                 else None,
-                cluster_name=kube_config.host.strip("https://").split(":")[0],
+                cluster_name=kube_config.host.removeprefix("https://").split(
+                    ":"
+                )[0],
                 insecure=kube_config.verify_ssl is False,
             )
         else:
             token: Optional[str] = None
             if kube_config.api_key:
-                token = kube_config.api_key["authorization"].strip("Bearer ")
+                token = kube_config.api_key["authorization"].removeprefix(
+                    "Bearer "
+                )
 
             auth_method = KubernetesAuthenticationMethods.TOKEN
             auth_config = KubernetesTokenConfig(
@@ -572,7 +577,7 @@ class KubernetesServiceConnector(ServiceConnector):
                 auth_settings=["BearerToken"],
                 response_type="VersionInfo",
             )
-        except k8s_client.ApiException as err:
+        except (k8s_client.ApiException, HTTPError) as err:
             raise AuthorizationException(
                 f"failed to verify Kubernetes cluster access: {err}"
             ) from err

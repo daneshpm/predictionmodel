@@ -34,11 +34,12 @@ from uuid import UUID
 from pydantic import ConfigDict
 
 from zenml.console import console
+from zenml.enums import ServiceState
 from zenml.logger import get_logger
+from zenml.models.v2.misc.service import ServiceType
 from zenml.services.service_endpoint import BaseServiceEndpoint
 from zenml.services.service_monitor import HTTPEndpointHealthMonitor
-from zenml.services.service_status import ServiceState, ServiceStatus
-from zenml.services.service_type import ServiceType
+from zenml.services.service_status import ServiceStatus
 from zenml.utils import source_utils
 from zenml.utils.typed_model import BaseTypedModel
 
@@ -78,9 +79,9 @@ def update_service_status(
             if pre_status:
                 self.status.update_state(pre_status, "")
             try:
-                logger.info(f"Calling {func.__name__} method...")
+                logger.debug(f"Calling {func.__name__} method...")
                 result = func(self, *args, **kwargs)
-                logger.info(f"{func.__name__} method executed successfully.")
+                logger.debug(f"{func.__name__} method executed successfully.")
                 if post_status:
                     self.status.update_state(post_status, "")
                 return result

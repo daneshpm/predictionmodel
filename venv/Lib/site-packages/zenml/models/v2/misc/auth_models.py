@@ -13,10 +13,10 @@
 #  permissions and limitations under the License.
 """Models representing OAuth2 requests and responses."""
 
-from typing import Optional
+from typing import Any, Dict, Optional
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from zenml.enums import OAuthGrantTypes
 
@@ -29,6 +29,7 @@ class OAuthDeviceAuthorizationRequest(BaseModel):
     """OAuth2 device authorization grant request."""
 
     client_id: UUID
+    device_id: Optional[UUID] = None
 
 
 class OAuthDeviceVerificationRequest(BaseModel):
@@ -118,7 +119,15 @@ class OAuthTokenResponse(BaseModel):
     token_type: str
     expires_in: Optional[int] = None
     refresh_token: Optional[str] = None
+    csrf_token: Optional[str] = None
     scope: Optional[str] = None
+    device_id: Optional[UUID] = None
+    device_metadata: Optional[Dict[str, Any]] = None
+
+    model_config = ConfigDict(
+        # Allow extra attributes to allow compatibility with different versions
+        extra="allow",
+    )
 
 
 class OAuthRedirectResponse(BaseModel):

@@ -19,7 +19,7 @@ def ml_pipeline():
 
     # Data Ingestion Step
     raw_data = data_ingestion_step(
-        file_path="C:\Users\pavan\Documents\prediction-model\data\archive.zip"
+        file_path="C:\\Users\\pavan\\Documents\\prediction-model\\data\\archive.zip"
     )
 
     # Handling Missing Values Step
